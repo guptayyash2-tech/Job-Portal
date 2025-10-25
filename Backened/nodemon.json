@@ -1,0 +1,6 @@
+{
+  "watch": ["."],
+  "ext": "js,ejs,json",
+  "ignore": ["savedata/home.json"],
+  "exec":"node index.js"
+}
