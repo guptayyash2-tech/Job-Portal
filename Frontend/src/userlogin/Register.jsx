@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-
 import { Link, useNavigate } from "react-router-dom";
 import { register, setAuthToken } from "../../Api";
+
 const UserRegister = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -11,6 +11,7 @@ const UserRegister = () => {
     image: "",
   });
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // "success" or "error"
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -25,27 +26,33 @@ const UserRegister = () => {
       const { token } = data;
       setAuthToken(token);
       localStorage.setItem("token", token);
-      setMessage("✅ Registration successful!");
-      navigate("/login");
+
+      // Show success message
+      setMessage("Registration successful! Redirecting to login...");
+      setMessageType("success");
+
+      // Auto redirect after 3 seconds
+      setTimeout(() => {
+        navigate("/login");
+      }, 3000);
     } catch (error) {
-      setMessage(`❌ ${error.response?.data?.message || error.message}`);
+      setMessage(error.response?.data?.message || error.message);
+      setMessageType("error");
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md relative">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           Create Account
         </h2>
 
+        {/* Toast message */}
         {message && (
           <div
-            className={`text-center mb-4 ${
-              message.includes("✅")
-                ? "text-green-600"
-                : "text-red-500"
-            }`}
+            className={`fixed top-6 right-6 px-5 py-3 rounded-lg font-semibold shadow-lg transition-opacity duration-500 z-50
+              ${messageType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
           >
             {message}
           </div>
@@ -91,6 +98,7 @@ const UserRegister = () => {
             className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
           />
+
           <input
             type="file"
             name="image"
