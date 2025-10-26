@@ -5,6 +5,7 @@ import {
   approveApplication,
   rejectApplication,
 } from "../Adminapi";
+import { Link } from "react-router";
 
 const AdminApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -12,6 +13,7 @@ const AdminApplications = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // ✅ new
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -37,31 +39,38 @@ const AdminApplications = () => {
     fetchApplications();
   }, []);
 
+  // 🔍 Filter applications based on search + status dropdown
   useEffect(() => {
-    if (!search.trim()) {
-      setFilteredApps(applications);
-    } else {
-      const lowerSearch = search.toLowerCase();
-      const filtered = applications.filter(
-        (app) =>
-          app.user?.username?.toLowerCase().includes(lowerSearch) ||
-          app.jobListing?.jobTitle?.toLowerCase().includes(lowerSearch) ||
-          app.user?.emailid?.toLowerCase().includes(lowerSearch)
-      );
-      setFilteredApps(filtered);
+    const lowerSearch = search.toLowerCase().trim();
+    const lowerStatus = statusFilter.toLowerCase();
+
+    const filtered = applications.filter((app) => {
+      const username = app.user?.username?.toLowerCase() || "";
+      const email = app.user?.emailid?.toLowerCase() || "";
+      const jobTitle = app.jobListing?.jobTitle?.toLowerCase() || "";
+      const status = app.status?.toLowerCase() || "";
+
+      const matchesSearch =
+        username.includes(lowerSearch) ||
+        email.includes(lowerSearch) ||
+        jobTitle.includes(lowerSearch) ||
+        status.includes(lowerSearch);
+
+      const matchesStatus = lowerStatus ? status === lowerStatus : true;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    setFilteredApps(filtered);
+  }, [search, statusFilter, applications]);
+
+  const openResume = (base64Data) => {
+    if (!base64Data) {
+      alert("No resume found.");
+      return;
     }
-  }, [search, applications]);
-
-    const openResume = (base64Data) => {
     try {
-      if (!base64Data) {
-        alert("No resume found.");
-        return;
-      }
-
       const cleanedBase64 = base64Data.replace(/^data:.*;base64,/, "");
-
-      // Detect type
       let mimeType = "application/pdf";
       let fileExtension = "pdf";
       if (cleanedBase64.startsWith("UEsDB")) {
@@ -70,7 +79,6 @@ const AdminApplications = () => {
         fileExtension = "docx";
       }
 
-      // Convert base64 to Blob
       const byteCharacters = atob(cleanedBase64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -80,7 +88,6 @@ const AdminApplications = () => {
       const blob = new Blob([byteArray], { type: mimeType });
       const blobUrl = URL.createObjectURL(blob);
 
-      // PDF → open | DOCX → download
       if (fileExtension === "pdf") {
         const newTab = window.open(blobUrl, "_blank");
         if (!newTab) alert("Please allow pop-ups to view PDF files.");
@@ -98,12 +105,16 @@ const AdminApplications = () => {
     }
   };
 
-
   const handleApprove = async (id) => {
     if (!window.confirm("Approve this application?")) return;
     try {
       await approveApplication(id);
       alert("✅ Application approved!");
+      setApplications((prev) =>
+        prev.map((app) =>
+          app._id === id ? { ...app, status: "approved" } : app
+        )
+      );
     } catch (error) {
       console.error(error);
       alert("❌ Failed to approve.");
@@ -115,6 +126,11 @@ const AdminApplications = () => {
     try {
       await rejectApplication(id);
       alert("❌ Application rejected!");
+      setApplications((prev) =>
+        prev.map((app) =>
+          app._id === id ? { ...app, status: "rejected" } : app
+        )
+      );
     } catch (error) {
       console.error(error);
       alert("❌ Failed to reject.");
@@ -142,15 +158,25 @@ const AdminApplications = () => {
           📋 Job Applications
         </h2>
 
-        {/* 🔍 Search Bar */}
-        <div className="flex justify-center mb-10">
+        {/* 🔍 Search + Status Filter */}
+        <div className="flex flex-col md:flex-row justify-center items-center gap-3 mb-10">
           <input
             type="text"
-            placeholder="🔎 Search by name, email, or job title..."
+            placeholder="🔎 Search by name, email, job title, or status..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full md:w-2/3 p-3 rounded-full border border-indigo-300 shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
           />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="p-3 rounded-full border border-indigo-300 shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
+          >
+            <option value="">All Statuses</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="pending">Pending</option>
+          </select>
         </div>
 
         {filteredApps.length === 0 ? (
@@ -195,15 +221,9 @@ const AdminApplications = () => {
                       )}
                       {app.user?.username || "N/A"}
                     </td>
-                    <td className="p-4 text-gray-600">
-                      {app.user?.emailid || "N/A"}
-                    </td>
-                    <td className="p-4 text-indigo-700 font-medium">
-                      {app.jobListing?.jobTitle || "N/A"}
-                    </td>
-                    <td className="p-4 text-gray-700">
-                      {app.jobListing?.location || "N/A"}
-                    </td>
+                    <td className="p-4 text-gray-600">{app.user?.emailid || "N/A"}</td>
+                    <td className="p-4 text-indigo-700 font-medium">{app.jobListing?.jobTitle || "N/A"}</td>
+                    <td className="p-4 text-gray-700">{app.jobListing?.location || "N/A"}</td>
                     <td className="p-4">
                       {app.resume ? (
                         <button
@@ -255,6 +275,13 @@ const AdminApplications = () => {
           </div>
         )}
       </div>
+
+      <Link
+        to="/"
+        className="fixed bottom-6 right-6 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-2 transition-transform hover:scale-105"
+      >
+        🏠 Back to Dashboard
+      </Link>
     </div>
   );
 };

@@ -102,3 +102,16 @@ export const getJobById = async (jobId) => {
   const response = await api.get(`/job/${jobId}`);
   return response.data;
 }
+
+export const getUserApplications = async () => {
+  const response = await api.get("/applications");
+  return response.data;
+}
+export const approveApplication = async (applicationId) => {
+  const response = await api.get(`/applications/approved/${applicationId}`);
+  return response.data;
+}
+export const rejectApplication = async (applicationId) => {
+  const response = await api.post(`/applications/reject/${applicationId}`);
+  return response.data;
+}

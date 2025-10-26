@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { redirect, useNavigate, useParams } from "react-router";
 import { applyForJob, getJobById, setAuthToken } from "../../Api";
 
 const ApplyJob = () => {
@@ -47,6 +47,7 @@ const ApplyJob = () => {
       const res = await applyForJob(jobId, formData);
       setMessage("✅ " + res.message);
       setTimeout(() => setMessage(""), 5000);
+      navigate("/");
     } catch (err) {
       setMessage("❌ " + (err.response?.data?.message || "Failed to apply"));
     } finally {

@@ -26,6 +26,8 @@ import UpdateCompanyInformation from "./ADMIN/Companyinformtion/Updatecompanyifo
 import UpdateResume from "../UpdateResume";
 import GetjobListings from "./ADMIN/Companyinformtion/Getjoblisting";
 import AdminApplications from "./ADMIN/Admininformation/Getjobapllication";
+import Getapllication from "./userpersonalinfo/Getapllication";
+import UserApplications from "./userpersonalinfo/Getapllication";
 
 
 function App() {
@@ -50,6 +52,7 @@ function App() {
 <Route path="/updateresume/:id" element={<UpdateResume />} />
 <Route path="/applyjob/:jobId" element={<ApplyJob />} />
 
+<Route path="/applications" element={<UserApplications />} />
 
 <Route path="/adminregister" element={<AdminRegister />} />
 <Route path="/adminlogin" element={<Adminlogin />} />

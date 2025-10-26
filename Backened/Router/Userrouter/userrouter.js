@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const { getuserprofile, login, register, updateuserprofile, getjoblist, getjobbyid } = require("../../Controller/Usercontroller");
 const protect = require("../../middlewear/usermiddle");
-const { applyForJob } = require("../../Controller/apllyjob/applyjob");
+const { applyForJob, getUserApplications, approveApplication, rejectApplication } = require("../../Controller/apllyjob/applyjob");
 
 
 // Multer setup
@@ -19,5 +19,7 @@ router.get("/joblistings", protect, getjoblist);
 
 router.post("/applyjob/:jobId", protect, upload.single("resume"), applyForJob);
 router.get("/job/:jobId", protect, getjobbyid);
-
+router.get("/applications", protect, getUserApplications);
+router.get("/applications/approved/:applicationId", protect, approveApplication);
+router.post("/applications/reject/:applicationId", protect, rejectApplication);
 module.exports = router;
