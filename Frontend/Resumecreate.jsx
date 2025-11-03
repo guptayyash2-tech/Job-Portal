@@ -12,41 +12,52 @@ const CreateResume = () => {
     experience: "",
     skills: "",
     hoobys: "",
-    resume: null,
-    image: null,
     title: "",
     summary: "",
+    resume: null,
+    image: null,
   });
 
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // Set Auth Token
+  // ✅ Set Auth Token from localStorage
   const token = localStorage.getItem("token");
   if (token) setAuthToken(token);
 
+  // ✅ Handle text inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Handle file inputs
   const handleFileChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.files[0] });
+    const file = e.target.files[0];
+    setFormData((prev) => ({ ...prev, [e.target.name]: file }));
   };
 
+  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const dataToSend = new FormData();
-      Object.keys(formData).forEach((key) =>
-        dataToSend.append(key, formData[key])
-      );
+
+      // Append only non-empty fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== null && value !== "") {
+          dataToSend.append(key, value);
+        }
+      });
 
       const response = await postresume(dataToSend);
       setMessage("✅ Resume uploaded successfully!");
-      console.log(response);
-      setTimeout(() => navigate("/profile"), 1500);
+      console.log("Upload success:", response);
+
+      setTimeout(() => navigate("/getresumes"), 1500);
     } catch (err) {
+      console.error("Upload error:", err);
       setMessage(`❌ ${err.response?.data?.message || err.message}`);
     }
   };
@@ -58,6 +69,7 @@ const CreateResume = () => {
           ✨ Create Your Resume
         </h2>
 
+        {/* ✅ Message */}
         {message && (
           <div
             className={`text-center mb-6 font-medium border py-2 rounded-xl ${
@@ -70,36 +82,44 @@ const CreateResume = () => {
           </div>
         )}
 
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
+        <form
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+        >
           {/* Left Column */}
           <div className="space-y-4">
-            {["name", "email", "mobilenumber", "address", "education"].map((field) => (
-              <input
-                key={field}
-                type={field === "email" ? "email" : "text"}
-                name={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                value={formData[field]}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                required={["name", "email", "mobilenumber"].includes(field)}
-              />
-            ))}
+            {["name", "email", "mobilenumber", "address", "education"].map(
+              (field) => (
+                <input
+                  key={field}
+                  type={field === "email" ? "email" : "text"}
+                  name={field}
+                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                  required={["name", "email", "mobilenumber"].includes(field)}
+                />
+              )
+            )}
           </div>
 
           {/* Right Column */}
           <div className="space-y-4">
-            {["experience", "skills", "hoobys", "title", "summary"].map((field) => (
-              <input
-                key={field}
-                type="text"
-                name={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                value={formData[field]}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-              />
-            ))}
+            {["experience", "skills", "hoobys", "title", "summary"].map(
+              (field) => (
+                <input
+                  key={field}
+                  type="text"
+                  name={field}
+                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                />
+              )
+            )}
 
             {/* Resume Upload */}
             <div className="border border-dashed border-indigo-400 rounded-xl p-3 bg-indigo-50/40 hover:bg-indigo-100 transition">
@@ -128,6 +148,17 @@ const CreateResume = () => {
                 onChange={handleFileChange}
                 className="block w-full text-sm text-gray-700"
               />
+
+              {/* ✅ Preview uploaded image */}
+              {formData.image && (
+                <div className="mt-3 flex justify-center">
+                  <img
+                    src={URL.createObjectURL(formData.image)}
+                    alt="Preview"
+                    className="w-28 h-28 rounded-xl object-cover border shadow"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

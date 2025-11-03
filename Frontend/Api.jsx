@@ -42,9 +42,9 @@ export const getUserProfile = async () => {
 
 // ✅ Update user profile
 export const updateUserProfile = async (profileData) => {
-  const response = await api.put("/updateuserprofile", profileData, {
-    headers: { "Content-Type": "application/json" },
-  });
+  const response = await api.put("userupdateprofile", profileData)
+    
+  
   return response.data;
 };
 
@@ -73,21 +73,27 @@ export const postresume = async (formData) => {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
-}
+};
+
+// Get all resumes
 export const getResumes = async () => {
   const response = await api.get("/getresumes");
   return response.data;
-}
+};
+
+// Update a resume
 export const updateResume = async (id, formData) => {
   const response = await api.put(`/updateresume/${id}`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
-}
+};
+
+// Delete a resume
 export const deleteResume = async (id) => {
   const response = await api.delete(`/deleteresume/${id}`);
   return response.data;
-}
+};
 export const getAllJob = async () => {
   const response = await api.get("/joblistings");
   return response.data;

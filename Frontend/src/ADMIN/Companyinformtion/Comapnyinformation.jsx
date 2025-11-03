@@ -47,7 +47,7 @@ const CompanyInformation = () => {
     try {
       await createCompanyInformation(companyData);
       setMessage("✅ Company information saved successfully!");
-      navigate("/dashboard"); // redirect after save
+      navigate("/getcompanyinfo"); // redirect after save
     } catch (err) {
       setMessage(`❌ ${err.message}`);
     }

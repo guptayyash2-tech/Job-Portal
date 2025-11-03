@@ -2,15 +2,18 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../mongo/Userlogin/user");
 const employerjoblisting = require("../mongo/adminlogin/employerjoblisting");
-// Generate JWT
-const generateToken = (userId) => {
+
+// 🔹 Generate JWT
+const generateToken = (userId, role) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
   }
-  return jwt.sign({ id: userId, role: User.role }, process.env.JWT_SECRET, { expiresIn: "25d" });
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
+    expiresIn: "25d",
+  });
 };
 
-// Register
+// 🔹 Register User
 const register = async (req, res, next) => {
   try {
     const { username, emailid, password, mobilenumber } = req.body;
@@ -35,7 +38,8 @@ const register = async (req, res, next) => {
       image: userImage,
     });
 
-    const token = generateToken(newUser._id);
+    const token = generateToken(newUser._id, newUser.role);
+
     res.status(201).json({
       user: {
         id: newUser._id,
@@ -47,11 +51,12 @@ const register = async (req, res, next) => {
       token,
     });
   } catch (error) {
+    console.error("❌ Error in register:", error);
     next(error);
   }
 };
 
-// Login
+// 🔹 Login User
 const login = async (req, res, next) => {
   try {
     const { emailid, password } = req.body;
@@ -61,7 +66,8 @@ const login = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
+
     res.status(200).json({
       user: {
         id: user._id,
@@ -70,52 +76,82 @@ const login = async (req, res, next) => {
         mobilenumber: user.mobilenumber,
         image: user.image,
       },
+      role: user.role,
       token,
-          role: user.role,
     });
   } catch (error) {
+    console.error("❌ Error in login:", error);
     next(error);
   }
 };
 
-// Get user profile
+// 🔹 Get User Profile
 const getuserprofile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({ user });
   } catch (error) {
+    console.error("❌ Error fetching user profile:", error);
     next(error);
   }
 };
 
-// Update profile
+// 🔹 Update User Profile
 const updateuserprofile = async (req, res, next) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: No user ID found" });
+    }
+
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
 
     const { username, emailid, mobilenumber } = req.body;
-    user.username = username || user.username;
-    user.emailid = emailid || user.emailid;
-    user.mobilenumber = mobilenumber || user.mobilenumber;
+    const userImage = req.file ? req.file.buffer.toString("base64") : null;
+
+    if (username) user.username = username;
+    if (emailid) user.emailid = emailid;
+    if (mobilenumber) user.mobilenumber = mobilenumber;
+    if (userImage) user.image = userImage;
 
     await user.save();
-    res.json({ user });
+
+    const updatedUser = await User.findById(req.user.id).select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
-    next(error);
+    console.error("❌ Error updating profile:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating profile",
+      error: error.message,
+    });
   }
 };
 
+// 🔹 Get All Jobs
 const getjoblist = async (req, res, next) => {
   try {
     const jobs = await employerjoblisting.find();
-   
     res.json({ jobs });
   } catch (error) {
+    console.error("❌ Error fetching jobs:", error);
     next(error);
   }
 };
+
+// 🔹 Get Job By ID
 const getjobbyid = async (req, res, next) => {
   try {
     const jobId = req.params.jobId;
@@ -123,8 +159,17 @@ const getjobbyid = async (req, res, next) => {
     if (!job) return res.status(404).json({ message: "Job not found" });
     res.json({ job });
   } catch (error) {
+    console.error("❌ Error fetching job by ID:", error);
     next(error);
   }
 };
 
-module.exports = { register, login, getuserprofile, updateuserprofile, getjoblist, getjobbyid };
+// ✅ Export all functions (CommonJS)
+module.exports = {
+  register,
+  login,
+  getuserprofile,
+  updateuserprofile,
+  getjoblist,
+  getjobbyid,
+};

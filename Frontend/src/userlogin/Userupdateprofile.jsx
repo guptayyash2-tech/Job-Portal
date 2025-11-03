@@ -35,7 +35,7 @@ const UpdateUserProfile = () => {
     try {
       await updateUserProfile(formData);
       setMessage("✅ Profile updated successfully!");
-      setTimeout(() => navigate("/getpersonalinfo"), 1000);
+      setTimeout(() => navigate("/usergetprofile"), 1000);
     } 
     catch (err) {
       setMessage("❌ Failed to update profile");

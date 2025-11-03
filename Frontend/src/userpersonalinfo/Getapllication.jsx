@@ -149,17 +149,22 @@ const UserApplications = () => {
                       <span className="text-gray-400">N/A</span>
                     )}
                   </td>
-                  <td className="p-4">
-                    {app.status === "approved" ? (
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                        Approved
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
-                        Rejected
-                      </span>
-                    )}
-                  </td>
+                <td className="p-4">
+  {app.status === "approved" ? (
+    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+      Approved
+    </span>
+  ) : app.status === "rejected" ? (
+    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+      Rejected
+    </span>
+  ) : (
+    <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold">
+      Pending
+    </span>
+  )}
+</td>
+
                   <td className="p-4 text-gray-500">{new Date(app.appliedAt).toLocaleDateString()}</td>
                 </tr>
               ))}

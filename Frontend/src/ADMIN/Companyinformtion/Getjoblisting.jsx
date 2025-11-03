@@ -99,7 +99,7 @@ const GetjobListings = () => {
 
                   <div className="flex gap-4 mt-6">
                     <button
-                      onClick={() => navigate(`/createjoblisting/${job._id}`)}
+                      onClick={() => navigate(`/createjoblisting}`)}
                       className="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-colors duration-200 font-semibold"
                     >
                       Edit
